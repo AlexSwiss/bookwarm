@@ -46,6 +46,7 @@ type DirectiveRoot struct {
 type ComplexityRoot struct {
 	Author struct {
 		AuthorID  func(childComplexity int) int
+		BookID    func(childComplexity int) int
 		Firstname func(childComplexity int) int
 		Lastname  func(childComplexity int) int
 	}
@@ -94,6 +95,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Author.AuthorID(childComplexity), true
+
+	case "Author.bookID":
+		if e.complexity.Author.BookID == nil {
+			break
+		}
+
+		return e.complexity.Author.BookID(childComplexity), true
 
 	case "Author.firstname":
 		if e.complexity.Author.Firstname == nil {
@@ -231,11 +239,15 @@ type Author {
     authorID: ID
     firstname: String!
     lastname: String!
+    bookID: String!
 }
 
 input newBook {
     name: String!
     ISBN: Int!
+}
+
+input newAuthor {
     firstname: String!
     lastname: String!
 }
@@ -401,6 +413,40 @@ func (ec *executionContext) _Author_lastname(ctx context.Context, field graphql.
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Lastname, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Author_bookID(ctx context.Context, field graphql.CollectedField, obj *models.Author) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Author",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BookID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1749,6 +1795,30 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputnewAuthor(ctx context.Context, obj interface{}) (model.NewAuthor, error) {
+	var it model.NewAuthor
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "firstname":
+			var err error
+			it.Firstname, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "lastname":
+			var err error
+			it.Lastname, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputnewBook(ctx context.Context, obj interface{}) (model.NewBook, error) {
 	var it model.NewBook
 	var asMap = obj.(map[string]interface{})
@@ -1764,18 +1834,6 @@ func (ec *executionContext) unmarshalInputnewBook(ctx context.Context, obj inter
 		case "ISBN":
 			var err error
 			it.Isbn, err = ec.unmarshalNInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "firstname":
-			var err error
-			it.Firstname, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "lastname":
-			var err error
-			it.Lastname, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -1813,6 +1871,11 @@ func (ec *executionContext) _Author(ctx context.Context, sel ast.SelectionSet, o
 			}
 		case "lastname":
 			out.Values[i] = ec._Author_lastname(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "bookID":
+			out.Values[i] = ec._Author_bookID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

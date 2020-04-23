@@ -9,11 +9,15 @@ type Author {
     authorID: ID
     firstname: String!
     lastname: String!
+    bookID: String!
 }
 
 input newBook {
     name: String!
     ISBN: Int!
+}
+
+input newAuthor {
     firstname: String!
     lastname: String!
 }

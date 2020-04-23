@@ -2,9 +2,12 @@
 
 package model
 
-type NewBook struct {
-	Name      string `json:"name"`
-	Isbn      int    `json:"ISBN"`
+type NewAuthor struct {
 	Firstname string `json:"firstname"`
 	Lastname  string `json:"lastname"`
+}
+
+type NewBook struct {
+	Name string `json:"name"`
+	Isbn int    `json:"ISBN"`
 }

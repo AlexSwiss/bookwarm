@@ -2,18 +2,6 @@
 
 package model
 
-type Author struct {
-	Firstname string `json:"firstname"`
-	Lastname  string `json:"lastname"`
-}
-
-type Book struct {
-	ID     *string   `json:"id"`
-	Name   string    `json:"name"`
-	Isbn   int       `json:"ISBN"`
-	Author []*Author `json:"author"`
-}
-
 type NewBook struct {
 	Name      string `json:"name"`
 	Isbn      int    `json:"ISBN"`

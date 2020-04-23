@@ -16,6 +16,12 @@ exec:
 model:
   filename: graph/model/models_gen.go
   package: model
+# where our custom model go
+models:
+  Book:
+    model: github.com/AlexSwiss/bookworm/graph/models.Book
+  Author:
+    model: github.com/AlexSwiss/bookworm/graph/models.Author
 
 # Where should the resolver implementations go?
 resolver:
@@ -37,20 +43,3 @@ resolver:
 autobind:
   - "github.com/AlexSwiss/bookworm/graph/model"
 
-# This section declares type mapping between the GraphQL and go type systems
-#
-# The first line in each type will be used as defaults for resolver arguments and
-# modelgen, the others will be allowed when binding to fields. Configure them to
-# your liking
-models:
-  ID:
-    model:
-      - github.com/99designs/gqlgen/graphql.ID
-      - github.com/99designs/gqlgen/graphql.Int
-      - github.com/99designs/gqlgen/graphql.Int64
-      - github.com/99designs/gqlgen/graphql.Int32
-  Int:
-    model:
-      - github.com/99designs/gqlgen/graphql.Int
-      - github.com/99designs/gqlgen/graphql.Int64
-      - github.com/99designs/gqlgen/graphql.Int32

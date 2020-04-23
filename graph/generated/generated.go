@@ -13,6 +13,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/AlexSwiss/bookworm/graph/model"
+	"github.com/AlexSwiss/bookworm/graph/models"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -44,6 +45,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Author struct {
+		AuthorID  func(childComplexity int) int
 		Firstname func(childComplexity int) int
 		Lastname  func(childComplexity int) int
 	}
@@ -65,10 +67,10 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	AddBook(ctx context.Context, input model.NewBook) (*model.Book, error)
+	AddBook(ctx context.Context, input model.NewBook) (*models.Book, error)
 }
 type QueryResolver interface {
-	Books(ctx context.Context) ([]*model.Book, error)
+	Books(ctx context.Context) ([]*models.Book, error)
 }
 
 type executableSchema struct {
@@ -85,6 +87,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Author.authorID":
+		if e.complexity.Author.AuthorID == nil {
+			break
+		}
+
+		return e.complexity.Author.AuthorID(childComplexity), true
 
 	case "Author.firstname":
 		if e.complexity.Author.Firstname == nil {
@@ -219,6 +228,7 @@ var sources = []*ast.Source{
 }
 
 type Author {
+    authorID: ID
     firstname: String!
     lastname: String!
 }
@@ -308,7 +318,38 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _Author_firstname(ctx context.Context, field graphql.CollectedField, obj *model.Author) (ret graphql.Marshaler) {
+func (ec *executionContext) _Author_authorID(ctx context.Context, field graphql.CollectedField, obj *models.Author) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Author",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AuthorID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Author_firstname(ctx context.Context, field graphql.CollectedField, obj *models.Author) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -342,7 +383,7 @@ func (ec *executionContext) _Author_firstname(ctx context.Context, field graphql
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Author_lastname(ctx context.Context, field graphql.CollectedField, obj *model.Author) (ret graphql.Marshaler) {
+func (ec *executionContext) _Author_lastname(ctx context.Context, field graphql.CollectedField, obj *models.Author) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -376,7 +417,7 @@ func (ec *executionContext) _Author_lastname(ctx context.Context, field graphql.
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Book_id(ctx context.Context, field graphql.CollectedField, obj *model.Book) (ret graphql.Marshaler) {
+func (ec *executionContext) _Book_id(ctx context.Context, field graphql.CollectedField, obj *models.Book) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -407,7 +448,7 @@ func (ec *executionContext) _Book_id(ctx context.Context, field graphql.Collecte
 	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Book_name(ctx context.Context, field graphql.CollectedField, obj *model.Book) (ret graphql.Marshaler) {
+func (ec *executionContext) _Book_name(ctx context.Context, field graphql.CollectedField, obj *models.Book) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -441,7 +482,7 @@ func (ec *executionContext) _Book_name(ctx context.Context, field graphql.Collec
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Book_ISBN(ctx context.Context, field graphql.CollectedField, obj *model.Book) (ret graphql.Marshaler) {
+func (ec *executionContext) _Book_ISBN(ctx context.Context, field graphql.CollectedField, obj *models.Book) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -475,7 +516,7 @@ func (ec *executionContext) _Book_ISBN(ctx context.Context, field graphql.Collec
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Book_author(ctx context.Context, field graphql.CollectedField, obj *model.Book) (ret graphql.Marshaler) {
+func (ec *executionContext) _Book_author(ctx context.Context, field graphql.CollectedField, obj *models.Book) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -504,9 +545,9 @@ func (ec *executionContext) _Book_author(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Author)
+	res := resTmp.([]*models.Author)
 	fc.Result = res
-	return ec.marshalNAuthor2ᚕᚖgithubᚗcomᚋAlexSwissᚋbookwormᚋgraphᚋmodelᚐAuthorᚄ(ctx, field.Selections, res)
+	return ec.marshalNAuthor2ᚕᚖgithubᚗcomᚋAlexSwissᚋbookwormᚋgraphᚋmodelsᚐAuthorᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addBook(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -545,9 +586,9 @@ func (ec *executionContext) _Mutation_addBook(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Book)
+	res := resTmp.(*models.Book)
 	fc.Result = res
-	return ec.marshalNBook2ᚖgithubᚗcomᚋAlexSwissᚋbookwormᚋgraphᚋmodelᚐBook(ctx, field.Selections, res)
+	return ec.marshalNBook2ᚖgithubᚗcomᚋAlexSwissᚋbookwormᚋgraphᚋmodelsᚐBook(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_books(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -579,9 +620,9 @@ func (ec *executionContext) _Query_books(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Book)
+	res := resTmp.([]*models.Book)
 	fc.Result = res
-	return ec.marshalNBook2ᚕᚖgithubᚗcomᚋAlexSwissᚋbookwormᚋgraphᚋmodelᚐBookᚄ(ctx, field.Selections, res)
+	return ec.marshalNBook2ᚕᚖgithubᚗcomᚋAlexSwissᚋbookwormᚋgraphᚋmodelsᚐBookᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1754,7 +1795,7 @@ func (ec *executionContext) unmarshalInputnewBook(ctx context.Context, obj inter
 
 var authorImplementors = []string{"Author"}
 
-func (ec *executionContext) _Author(ctx context.Context, sel ast.SelectionSet, obj *model.Author) graphql.Marshaler {
+func (ec *executionContext) _Author(ctx context.Context, sel ast.SelectionSet, obj *models.Author) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, authorImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -1763,6 +1804,8 @@ func (ec *executionContext) _Author(ctx context.Context, sel ast.SelectionSet, o
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Author")
+		case "authorID":
+			out.Values[i] = ec._Author_authorID(ctx, field, obj)
 		case "firstname":
 			out.Values[i] = ec._Author_firstname(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -1786,7 +1829,7 @@ func (ec *executionContext) _Author(ctx context.Context, sel ast.SelectionSet, o
 
 var bookImplementors = []string{"Book"}
 
-func (ec *executionContext) _Book(ctx context.Context, sel ast.SelectionSet, obj *model.Book) graphql.Marshaler {
+func (ec *executionContext) _Book(ctx context.Context, sel ast.SelectionSet, obj *models.Book) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, bookImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -2143,11 +2186,11 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNAuthor2githubᚗcomᚋAlexSwissᚋbookwormᚋgraphᚋmodelᚐAuthor(ctx context.Context, sel ast.SelectionSet, v model.Author) graphql.Marshaler {
+func (ec *executionContext) marshalNAuthor2githubᚗcomᚋAlexSwissᚋbookwormᚋgraphᚋmodelsᚐAuthor(ctx context.Context, sel ast.SelectionSet, v models.Author) graphql.Marshaler {
 	return ec._Author(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAuthor2ᚕᚖgithubᚗcomᚋAlexSwissᚋbookwormᚋgraphᚋmodelᚐAuthorᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Author) graphql.Marshaler {
+func (ec *executionContext) marshalNAuthor2ᚕᚖgithubᚗcomᚋAlexSwissᚋbookwormᚋgraphᚋmodelsᚐAuthorᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Author) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -2171,7 +2214,7 @@ func (ec *executionContext) marshalNAuthor2ᚕᚖgithubᚗcomᚋAlexSwissᚋbook
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNAuthor2ᚖgithubᚗcomᚋAlexSwissᚋbookwormᚋgraphᚋmodelᚐAuthor(ctx, sel, v[i])
+			ret[i] = ec.marshalNAuthor2ᚖgithubᚗcomᚋAlexSwissᚋbookwormᚋgraphᚋmodelsᚐAuthor(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -2184,7 +2227,7 @@ func (ec *executionContext) marshalNAuthor2ᚕᚖgithubᚗcomᚋAlexSwissᚋbook
 	return ret
 }
 
-func (ec *executionContext) marshalNAuthor2ᚖgithubᚗcomᚋAlexSwissᚋbookwormᚋgraphᚋmodelᚐAuthor(ctx context.Context, sel ast.SelectionSet, v *model.Author) graphql.Marshaler {
+func (ec *executionContext) marshalNAuthor2ᚖgithubᚗcomᚋAlexSwissᚋbookwormᚋgraphᚋmodelsᚐAuthor(ctx context.Context, sel ast.SelectionSet, v *models.Author) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -2194,11 +2237,11 @@ func (ec *executionContext) marshalNAuthor2ᚖgithubᚗcomᚋAlexSwissᚋbookwor
 	return ec._Author(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNBook2githubᚗcomᚋAlexSwissᚋbookwormᚋgraphᚋmodelᚐBook(ctx context.Context, sel ast.SelectionSet, v model.Book) graphql.Marshaler {
+func (ec *executionContext) marshalNBook2githubᚗcomᚋAlexSwissᚋbookwormᚋgraphᚋmodelsᚐBook(ctx context.Context, sel ast.SelectionSet, v models.Book) graphql.Marshaler {
 	return ec._Book(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNBook2ᚕᚖgithubᚗcomᚋAlexSwissᚋbookwormᚋgraphᚋmodelᚐBookᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Book) graphql.Marshaler {
+func (ec *executionContext) marshalNBook2ᚕᚖgithubᚗcomᚋAlexSwissᚋbookwormᚋgraphᚋmodelsᚐBookᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Book) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -2222,7 +2265,7 @@ func (ec *executionContext) marshalNBook2ᚕᚖgithubᚗcomᚋAlexSwissᚋbookwo
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNBook2ᚖgithubᚗcomᚋAlexSwissᚋbookwormᚋgraphᚋmodelᚐBook(ctx, sel, v[i])
+			ret[i] = ec.marshalNBook2ᚖgithubᚗcomᚋAlexSwissᚋbookwormᚋgraphᚋmodelsᚐBook(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -2235,7 +2278,7 @@ func (ec *executionContext) marshalNBook2ᚕᚖgithubᚗcomᚋAlexSwissᚋbookwo
 	return ret
 }
 
-func (ec *executionContext) marshalNBook2ᚖgithubᚗcomᚋAlexSwissᚋbookwormᚋgraphᚋmodelᚐBook(ctx context.Context, sel ast.SelectionSet, v *model.Book) graphql.Marshaler {
+func (ec *executionContext) marshalNBook2ᚖgithubᚗcomᚋAlexSwissᚋbookwormᚋgraphᚋmodelsᚐBook(ctx context.Context, sel ast.SelectionSet, v *models.Book) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
